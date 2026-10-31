@@ -1,0 +1,1536 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Beast Breakdown — Vaibhav Singh</title>
+  <link href="https://fonts.googleapis.com/css2?family=Imperial+Script&family=Cinzel+Decorative:wght@400;700;900&family=Cinzel:wght@400;700;900&family=Raleway:wght@300;400;600&display=swap" rel="stylesheet" />
+  <!-- Supabase JS CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --gold:      #c9a84c;
+      --gold-lt:   #f0d080;
+      --gold-dim:  #7a6020;
+      --gold-neon: #ffe066;
+      --black:     #060606;
+      --dark:      #0e0e0e;
+      --mid:       #181818;
+      --white:     #f5f5f5;
+      --muted:     #777777;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--black);
+      color: var(--white);
+      font-family: 'Raleway', sans-serif;
+      font-weight: 300;
+      line-height: 1.7;
+      overflow-x: hidden;
+    }
+
+    /* ══════════════════════════════
+       GLOBAL GOLDEN MIST LAYER
+    ══════════════════════════════ */
+    body::before {
+      content: '';
+      pointer-events: none;
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      background:
+        radial-gradient(ellipse 90% 50% at 50% 0%,   rgba(201,168,76,0.07) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 40% at 10% 30%,  rgba(201,168,76,0.05) 0%, transparent 55%),
+        radial-gradient(ellipse 50% 35% at 90% 60%,  rgba(201,168,76,0.05) 0%, transparent 55%),
+        radial-gradient(ellipse 80% 30% at 50% 100%, rgba(201,168,76,0.06) 0%, transparent 60%);
+    }
+
+    body::after {
+      content: '';
+      pointer-events: none;
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      background-image:
+        radial-gradient(ellipse 200px 80px at 20% 25%,  rgba(201,168,76,0.04) 0%, transparent 100%),
+        radial-gradient(ellipse 150px 60px at 75% 55%,  rgba(201,168,76,0.035) 0%, transparent 100%),
+        radial-gradient(ellipse 300px 100px at 50% 80%, rgba(201,168,76,0.045) 0%, transparent 100%);
+      animation: mistDrift 18s ease-in-out infinite alternate;
+    }
+
+    @keyframes mistDrift {
+      0%   { opacity: 0.6; transform: translateX(0) translateY(0); }
+      50%  { opacity: 1;   transform: translateX(15px) translateY(-10px); }
+      100% { opacity: 0.7; transform: translateX(-10px) translateY(8px); }
+    }
+
+    nav, section, footer, .modal-overlay { position: relative; z-index: 1; }
+
+    /* ══════════════════════════════
+       CALLIGRAPHY / NEON HEADINGS
+    ══════════════════════════════ */
+    .calligraphy {
+      font-family: 'Imperial Script', cursive;
+      color: var(--gold-neon);
+      text-shadow:
+        0 0 8px  rgba(255,224,102,0.9),
+        0 0 20px rgba(201,168,76,0.8),
+        0 0 40px rgba(201,168,76,0.5),
+        0 0 80px rgba(201,168,76,0.3),
+        0 0 120px rgba(201,168,76,0.15);
+      animation: neonPulse 3s ease-in-out infinite;
+    }
+
+    @keyframes neonPulse {
+      0%, 100% {
+        text-shadow:
+          0 0 8px  rgba(255,224,102,0.9),
+          0 0 20px rgba(201,168,76,0.8),
+          0 0 40px rgba(201,168,76,0.5),
+          0 0 80px rgba(201,168,76,0.3);
+      }
+      50% {
+        text-shadow:
+          0 0 12px rgba(255,224,102,1),
+          0 0 30px rgba(201,168,76,0.95),
+          0 0 60px rgba(201,168,76,0.7),
+          0 0 100px rgba(201,168,76,0.4),
+          0 0 140px rgba(201,168,76,0.2);
+      }
+    }
+
+    .cinzel-neon {
+      font-family: 'Cinzel Decorative', serif;
+      color: var(--gold-neon);
+      text-shadow:
+        0 0 6px  rgba(255,224,102,0.95),
+        0 0 18px rgba(201,168,76,0.85),
+        0 0 35px rgba(201,168,76,0.55),
+        0 0 70px rgba(201,168,76,0.3);
+      animation: neonPulse 3s ease-in-out infinite;
+    }
+
+    /* ══════════════════════════════
+       NAV
+    ══════════════════════════════ */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 200;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1.1rem 5%;
+      background: rgba(6,6,6,0.88);
+      backdrop-filter: blur(14px);
+      border-bottom: 1px solid rgba(201,168,76,0.18);
+      box-shadow: 0 2px 40px rgba(201,168,76,0.06);
+    }
+
+    .nav-logo {
+      font-family: 'Cinzel Decorative', serif;
+      font-size: 1rem;
+      color: var(--gold);
+      letter-spacing: 1px;
+      text-decoration: none;
+      text-shadow: 0 0 12px rgba(201,168,76,0.5);
+    }
+
+    .nav-links { display: flex; gap: 2.5rem; list-style: none; }
+    .nav-links a {
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 0.78rem;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      transition: color 0.3s, text-shadow 0.3s;
+    }
+    .nav-links a:hover {
+      color: var(--gold-neon);
+      text-shadow: 0 0 10px rgba(255,224,102,0.6);
+    }
+
+    /* ══════════════════════════════
+       HERO
+    ══════════════════════════════ */
+    #hero {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 8rem 5% 5rem;
+      overflow: hidden;
+    }
+
+    #hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+      background:
+        radial-gradient(ellipse 80% 70% at 50% 35%, rgba(201,168,76,0.1) 0%, transparent 65%),
+        radial-gradient(ellipse 40% 30% at 20% 70%, rgba(201,168,76,0.05) 0%, transparent 60%),
+        radial-gradient(ellipse 35% 25% at 85% 20%, rgba(201,168,76,0.04) 0%, transparent 60%);
+    }
+
+    #hero > * { position: relative; z-index: 1; }
+
+    .hero-series {
+      font-size: 0.72rem;
+      letter-spacing: 6px;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 1.2rem;
+      text-shadow: 0 0 8px rgba(201,168,76,0.4);
+    }
+
+    .hero-title {
+      font-size: clamp(4.5rem, 14vw, 10rem);
+      line-height: 1;
+      margin-bottom: 0.5rem;
+    }
+
+    .hero-by {
+      font-family: 'Raleway', sans-serif;
+      font-size: clamp(0.85rem, 2.5vw, 1.1rem);
+      color: rgba(245,245,245,0.5);
+      letter-spacing: 6px;
+      text-transform: uppercase;
+      margin-bottom: 0.6rem;
+    }
+
+    .hero-author-card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.6rem;
+      margin: 1.4rem 0 2.2rem;
+    }
+
+    .hero-author-name {
+      font-family: 'Cinzel', serif;
+      font-size: 1rem;
+      color: var(--white);
+      letter-spacing: 2px;
+    }
+
+    .hero-author-role {
+      font-size: 0.65rem;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: var(--gold);
+      text-shadow: 0 0 8px rgba(201,168,76,0.4);
+    }
+
+    .hero-tagline {
+      max-width: 500px;
+      font-size: 0.95rem;
+      color: rgba(245,245,245,0.6);
+      margin-bottom: 2.5rem;
+      font-style: italic;
+    }
+
+    .btn-group { display: flex; gap: 1.2rem; flex-wrap: wrap; justify-content: center; }
+
+    .btn {
+      display: inline-block;
+      padding: 0.82rem 2.2rem;
+      border-radius: 2px;
+      font-size: 0.75rem;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      text-decoration: none;
+      font-family: 'Raleway', sans-serif;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.35s;
+      border: none;
+    }
+
+    .btn-primary {
+      background: var(--gold);
+      color: var(--black);
+      border: 2px solid var(--gold);
+      box-shadow: 0 0 20px rgba(201,168,76,0.3);
+    }
+    .btn-primary:hover {
+      background: var(--gold-neon);
+      border-color: var(--gold-neon);
+      transform: translateY(-2px);
+      box-shadow: 0 0 30px rgba(255,224,102,0.5), 0 8px 20px rgba(0,0,0,0.4);
+    }
+
+    .btn-outline {
+      background: transparent;
+      color: var(--gold);
+      border: 2px solid rgba(201,168,76,0.45);
+    }
+    .btn-outline:hover {
+      border-color: var(--gold-neon);
+      color: var(--gold-neon);
+      background: rgba(201,168,76,0.07);
+      transform: translateY(-2px);
+      box-shadow: 0 0 20px rgba(201,168,76,0.2);
+    }
+
+    .scroll-hint {
+      position: absolute;
+      bottom: 2rem;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.4rem;
+      color: var(--muted);
+      font-size: 0.6rem;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      animation: bounce 2s infinite;
+      z-index: 1;
+    }
+
+    .scroll-hint::after {
+      content: '';
+      width: 1px;
+      height: 36px;
+      background: linear-gradient(to bottom, var(--gold), transparent);
+    }
+
+    @keyframes bounce {
+      0%, 100% { transform: translateX(-50%) translateY(0); }
+      50%       { transform: translateX(-50%) translateY(7px); }
+    }
+
+    section { padding: 6rem 5%; }
+
+    .section-label {
+      font-size: 0.68rem;
+      letter-spacing: 5px;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 0.8rem;
+      text-shadow: 0 0 8px rgba(201,168,76,0.4);
+    }
+
+    .divider {
+      width: 60px;
+      height: 2px;
+      background: linear-gradient(to right, var(--gold-neon), var(--gold), transparent);
+      margin: 1.4rem 0 2.8rem;
+      box-shadow: 0 0 8px rgba(255,224,102,0.4);
+    }
+
+    /* ══════════════════════════════
+       BOOK SECTION
+    ══════════════════════════════ */
+    #book {
+      background: var(--dark);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #book::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse 60% 70% at 30% 50%, rgba(201,168,76,0.06) 0%, transparent 65%);
+      pointer-events: none;
+    }
+
+    .book-inner {
+      display: grid;
+      grid-template-columns: 1fr 1.4fr;
+      gap: 5rem;
+      max-width: 1100px;
+      width: 100%;
+      align-items: center;
+      position: relative;
+    }
+
+    .book-cover-wrap {
+      display: flex;
+      justify-content: center;
+    }
+
+    .book-cover-frame {
+      width: 270px;
+      height: 390px;
+      background: linear-gradient(160deg, #1a1a1a 0%, #0d0d0d 100%);
+      border: 1px solid rgba(201,168,76,0.35);
+      border-radius: 3px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      box-shadow:
+        -14px 14px 50px rgba(0,0,0,0.8),
+        0 0 50px rgba(201,168,76,0.1),
+        0 0 100px rgba(201,168,76,0.05),
+        inset 0 0 30px rgba(0,0,0,0.5);
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.5s, box-shadow 0.5s;
+    }
+
+    .book-cover-frame:hover {
+      transform: perspective(700px) rotateY(-10deg) translateY(-8px);
+      box-shadow:
+        -22px 22px 60px rgba(0,0,0,0.85),
+        0 0 70px rgba(201,168,76,0.18),
+        0 0 120px rgba(201,168,76,0.08);
+    }
+
+    .book-cover-frame::after {
+      content: '';
+      position: absolute;
+      top: 0; left: 0;
+      width: 9px; height: 100%;
+      background: linear-gradient(to right, rgba(0,0,0,0.6), rgba(0,0,0,0.1), transparent);
+    }
+
+    .book-cover-frame::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: repeating-linear-gradient(
+        135deg,
+        transparent,
+        transparent 28px,
+        rgba(201,168,76,0.025) 28px,
+        rgba(201,168,76,0.025) 29px
+      );
+    }
+
+    .cover-series-badge {
+      position: absolute;
+      top: 0.9rem;
+      right: 0.9rem;
+      background: var(--gold);
+      color: var(--black);
+      font-size: 0.5rem;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      padding: 0.2rem 0.45rem;
+      font-weight: 700;
+      z-index: 2;
+      box-shadow: 0 0 10px rgba(201,168,76,0.5);
+    }
+
+    .book-details h2 {
+      font-family: 'Cinzel Decorative', serif;
+      font-size: clamp(1.8rem, 4vw, 2.6rem);
+      font-weight: 700;
+      line-height: 1.1;
+      margin-bottom: 0.5rem;
+      color: var(--gold-neon);
+      text-shadow:
+        0 0 8px rgba(255,224,102,0.8),
+        0 0 20px rgba(201,168,76,0.6),
+        0 0 40px rgba(201,168,76,0.3);
+    }
+
+    .book-meta {
+      display: flex;
+      gap: 2rem;
+      margin: 1.4rem 0 2rem;
+      flex-wrap: wrap;
+    }
+
+    .meta-item { display: flex; flex-direction: column; gap: 0.2rem; }
+
+    .meta-label {
+      font-size: 0.6rem;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .meta-value {
+      font-family: 'Cinzel', serif;
+      font-size: 0.9rem;
+      color: var(--gold);
+      text-shadow: 0 0 6px rgba(201,168,76,0.3);
+    }
+
+    .book-desc {
+      color: rgba(245,245,245,0.7);
+      font-size: 0.95rem;
+      border-left: 2px solid var(--gold);
+      padding-left: 1.2rem;
+      margin-bottom: 2.2rem;
+      font-style: italic;
+      box-shadow: -4px 0 12px rgba(201,168,76,0.08);
+    }
+
+    .stars { display: flex; gap: 0.3rem; margin-bottom: 2rem; }
+    .star {
+      color: var(--gold);
+      font-size: 1rem;
+      text-shadow: 0 0 8px rgba(201,168,76,0.7);
+    }
+
+    /* ══════════════════════════════
+       AUTHOR SECTION
+    ══════════════════════════════ */
+    #author {
+      background: var(--black);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #author::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse 60% 70% at 70% 50%, rgba(201,168,76,0.06) 0%, transparent 65%);
+      pointer-events: none;
+    }
+
+    .author-inner {
+      display: grid;
+      grid-template-columns: 1.4fr 1fr;
+      gap: 5rem;
+      max-width: 1100px;
+      width: 100%;
+      align-items: center;
+      position: relative;
+    }
+
+    .author-content h2 {
+      font-family: 'Imperial Script', cursive;
+      font-size: clamp(2.8rem, 6vw, 4rem);
+      color: var(--gold-neon);
+      text-shadow:
+        0 0 8px rgba(255,224,102,0.9),
+        0 0 20px rgba(201,168,76,0.8),
+        0 0 45px rgba(201,168,76,0.5),
+        0 0 80px rgba(201,168,76,0.25);
+      animation: neonPulse 3s ease-in-out infinite;
+      line-height: 1.1;
+      margin-bottom: 0.3rem;
+    }
+
+    .author-title-tag {
+      font-size: 0.7rem;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 1rem;
+      text-shadow: 0 0 6px rgba(201,168,76,0.3);
+    }
+
+    .author-bio {
+      color: rgba(245,245,245,0.68);
+      font-size: 0.95rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .author-quote {
+      font-family: 'Cinzel', serif;
+      font-size: 1rem;
+      color: var(--gold-lt);
+      font-style: italic;
+      border-left: 2px solid rgba(255,224,102,0.6);
+      padding-left: 1.2rem;
+      margin-bottom: 2rem;
+      box-shadow: -4px 0 12px rgba(201,168,76,0.1);
+      text-shadow: 0 0 8px rgba(201,168,76,0.2);
+    }
+
+    .author-photo-wrap {
+      display: flex;
+      justify-content: center;
+    }
+
+    .author-photo-frame {
+      width: 280px;
+      height: 360px;
+      background: var(--mid);
+      border: 1px solid rgba(201,168,76,0.22);
+      border-radius: 4px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      box-shadow:
+        14px 14px 45px rgba(0,0,0,0.7),
+        0 0 40px rgba(201,168,76,0.08),
+        0 0 80px rgba(201,168,76,0.04);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .author-photo-frame img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      position: absolute;
+      inset: 0;
+    }
+
+    .author-photo-frame::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to bottom, transparent 55%, rgba(0,0,0,0.75) 100%);
+      z-index: 1;
+    }
+
+    .author-photo-label {
+      position: absolute;
+      bottom: 1.4rem;
+      left: 0; right: 0;
+      text-align: center;
+      z-index: 2;
+      font-family: 'Cinzel', serif;
+      font-size: 0.95rem;
+      color: var(--white);
+    }
+
+    .author-photo-label span {
+      display: block;
+      font-size: 0.62rem;
+      letter-spacing: 3px;
+      color: var(--gold);
+      text-transform: uppercase;
+      margin-top: 0.2rem;
+      text-shadow: 0 0 8px rgba(201,168,76,0.5);
+    }
+
+    .photo-corner {
+      position: absolute;
+      width: 22px; height: 22px;
+      border-color: var(--gold);
+      border-style: solid;
+      opacity: 0.5;
+      z-index: 3;
+    }
+    .photo-corner.tl { top: 10px; left: 10px; border-width: 2px 0 0 2px; }
+    .photo-corner.tr { top: 10px; right: 10px; border-width: 2px 2px 0 0; }
+    .photo-corner.bl { bottom: 10px; left: 10px; border-width: 0 0 2px 2px; }
+    .photo-corner.br { bottom: 10px; right: 10px; border-width: 0 2px 2px 0; }
+
+    /* ══════════════════════════════
+       FOOTER
+    ══════════════════════════════ */
+    footer {
+      background: var(--dark);
+      border-top: 1px solid rgba(201,168,76,0.12);
+      text-align: center;
+      padding: 3rem 5%;
+      color: var(--muted);
+      font-size: 0.75rem;
+      letter-spacing: 1px;
+      box-shadow: 0 -4px 40px rgba(201,168,76,0.04);
+    }
+
+    .footer-logo {
+      font-family: 'Imperial Script', cursive;
+      font-size: 2.2rem;
+      margin-bottom: 0.8rem;
+      color: var(--gold-neon);
+      text-shadow:
+        0 0 10px rgba(255,224,102,0.8),
+        0 0 25px rgba(201,168,76,0.5),
+        0 0 50px rgba(201,168,76,0.25);
+    }
+
+    /* ══════════════════════════════
+       MODALS
+    ══════════════════════════════ */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 500;
+      background: rgba(0,0,0,0.88);
+      backdrop-filter: blur(10px);
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+    }
+
+    .modal-overlay.open {
+      display: flex;
+    }
+
+    .modal {
+      background: var(--dark);
+      border: 1px solid rgba(201,168,76,0.3);
+      border-radius: 4px;
+      width: 100%;
+      max-width: 520px;
+      padding: 3rem;
+      position: relative;
+      box-shadow:
+        0 0 60px rgba(201,168,76,0.12),
+        0 0 120px rgba(201,168,76,0.06),
+        0 30px 60px rgba(0,0,0,0.7);
+      animation: modalIn 0.35s ease;
+    }
+
+    @keyframes modalIn {
+      from { opacity: 0; transform: translateY(20px) scale(0.97); }
+      to   { opacity: 1; transform: none; }
+    }
+
+    .modal::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 4px;
+      background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(201,168,76,0.06) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .modal-close {
+      position: absolute;
+      top: 1.2rem; right: 1.4rem;
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-size: 1.4rem;
+      cursor: pointer;
+      line-height: 1;
+      transition: color 0.2s;
+    }
+
+    .modal-close:hover { color: var(--gold-neon); }
+
+    .modal-title {
+      font-family: 'Imperial Script', cursive;
+      font-size: 2.4rem;
+      color: var(--gold-neon);
+      text-shadow:
+        0 0 8px rgba(255,224,102,0.9),
+        0 0 20px rgba(201,168,76,0.6),
+        0 0 40px rgba(201,168,76,0.3);
+      margin-bottom: 0.3rem;
+    }
+
+    .contact-row {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 1rem 1.2rem;
+      border: 1px solid rgba(201,168,76,0.15);
+      border-radius: 3px;
+      margin-bottom: 1rem;
+      background: rgba(201,168,76,0.02);
+      transition: border-color 0.3s, box-shadow 0.3s;
+    }
+
+    .contact-row:hover {
+      border-color: rgba(201,168,76,0.4);
+      box-shadow: 0 0 20px rgba(201,168,76,0.08);
+    }
+
+    .contact-icon {
+      font-size: 1.4rem;
+      flex-shrink: 0;
+      filter: drop-shadow(0 0 6px rgba(201,168,76,0.5));
+    }
+
+    .contact-info { flex: 1; }
+
+    .contact-label {
+      font-size: 0.6rem;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 0.15rem;
+    }
+
+    .contact-value {
+      font-family: 'Cinzel', serif;
+      font-size: 0.88rem;
+      color: var(--gold-lt);
+      text-shadow: 0 0 6px rgba(201,168,76,0.3);
+    }
+
+    .modal-gold-divider {
+      width: 50px;
+      height: 1px;
+      background: linear-gradient(to right, var(--gold-neon), transparent);
+      margin: 1rem 0;
+      box-shadow: 0 0 6px rgba(255,224,102,0.4);
+    }
+
+    /* ══════════════════════════════
+       ANIMATIONS & RESPONSIVE
+    ══════════════════════════════ */
+    .fade-in {
+      opacity: 0;
+      transform: translateY(22px);
+      transition: opacity 0.75s ease, transform 0.75s ease;
+    }
+
+    .fade-in.visible {
+      opacity: 1;
+      transform: none;
+    }
+
+    @media (max-width: 800px) {
+      .book-inner, .author-inner {
+        grid-template-columns: 1fr;
+        gap: 3rem;
+        text-align: center;
+      }
+      .author-inner { direction: rtl; }
+      .author-inner > * { direction: ltr; }
+      .divider { margin-left: auto; margin-right: auto; }
+      .book-meta, .stars { justify-content: center; }
+      .book-desc { text-align: left; }
+      .btn-group { justify-content: center !important; }
+      .nav-links { display: none; }
+      .modal { padding: 2rem 1.5rem; }
+    }
+
+    .updates-nav { background: transparent; color: var(--gold-lt); border: 1px solid var(--gold); padding: .65rem .85rem; font: inherit; cursor: pointer; letter-spacing: 1px; display: inline-flex; align-items: center; gap: 0.4rem; }
+    #unreadBadge { background: var(--gold); color: var(--dark); border-radius: 1rem; padding: .1rem .4rem; }
+    .modal { max-height: calc(100dvh - 3rem); overflow-y: auto; }
+    .community-modal { max-width: 680px; }
+    .community-email { margin: 1.5rem 0; overflow-wrap: anywhere; }
+    .community-email a { color: var(--gold-lt); }
+    .community-copy { color: var(--muted); line-height: 1.8; margin: 1rem 0 1.5rem; }
+    .community-form { display: grid; gap: .8rem; margin-top: 1.5rem; }
+    .community-form input, .community-form textarea { width: 100%; background: var(--mid); color: var(--gold-lt); border: 1px solid var(--gold); padding: .8rem; font: inherit; }
+    .community-form label { color: var(--gold-lt); }
+    .community-tools { display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 1.5rem; }
+    .community-tools button, .text-button { color: var(--gold-lt); font: inherit; border: 0; background: transparent; cursor: pointer; text-decoration: underline; }
+    .update-entry { border-top: 1px solid rgba(201,168,76,.3); padding: 1.5rem 0; }
+    .update-entry h3 { color: var(--gold-lt); margin: .5rem 0; font-family: 'Cinzel', serif; }
+    .update-entry time { color: var(--muted); font-size: .8rem; }
+    .update-entry p { white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.8; }
+    [role="status"] { line-height: 1.6; margin-top: 1rem; color: var(--gold-lt); }
+    [hidden] { display: none !important; }
+    button:disabled { opacity: .6; cursor: wait; }
+    :focus-visible { outline: 2px solid var(--gold-lt); outline-offset: 4px; }
+    @media(max-width: 480px) { .nav-logo { font-size: .75rem; max-width: 50%; } .modal-overlay { padding: .75rem; } }
+    .library-toggle { display: flex; gap: .6rem; align-items: center; }
+    nav { gap: 1rem; }
+    .library-overlay { justify-content: flex-start; padding: 0; z-index: 1000; }
+    .library-drawer { width: min(430px, 100%); height: 100dvh; max-height: 100dvh; margin: 0; border-left: 0; padding: 4rem 2rem 2rem; }
+    .library-book { border-top: 1px solid rgba(201,168,76,.3); padding: 1.5rem 0; }
+    .library-book-header { display: flex; gap: 1rem; align-items: center; margin-bottom: 1rem; }
+    .library-book img { width: 65px; height: 96px; object-fit: cover; }
+    .library-book h3 { font-family: 'Cinzel', serif; color: var(--gold-lt); line-height: 1.5; overflow-wrap: anywhere; }
+    .library-chapter { display: block; width: 100%; padding: .8rem 0; text-align: left; border: 0; border-bottom: 1px solid rgba(201,168,76,.12); color: var(--gold-lt); background: transparent; cursor: pointer; font: inherit; line-height: 1.5; }
+    .library-chapter:hover { color: var(--gold); padding-left: .3rem; }
+    .chapter-reader { max-width: 800px; }
+    .chapter-reader .section-label { margin-top: 2rem; }
+    .chapter-text { white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.95; font-size: 1.1rem; margin-top: 2rem; }
+    @media(max-width: 700px) { nav { padding: .9rem 4%; gap: .6rem; } .library-toggle span { display: none; } .nav-logo { font-size: .75rem; } .updates-nav { font-size: .75rem; } }
+
+    /* Total Followers Counter Badge */
+    .followers-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      background: rgba(201, 168, 76, 0.12);
+      border: 1px solid var(--gold);
+      color: var(--gold-lt);
+      padding: 0.5rem 0.9rem;
+      font-size: 0.75rem;
+      letter-spacing: 1px;
+      font-family: 'Cinzel', serif;
+      border-radius: 2px;
+      box-shadow: 0 0 12px rgba(201, 168, 76, 0.2);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav>
+    <button class="updates-nav library-toggle" id="libraryButton" aria-label="Open books and chapters" aria-expanded="false" aria-controls="libraryDrawer" onclick="openLibraryModal()">☰ <span>Library</span></button>
+    <a class="nav-logo" href="#hero">Beast Breakdown</a>
+    <ul class="nav-links">
+      <li><a href="#book">The Book</a></li>
+      <li><a href="#author">The Author</a></li>
+    </ul>
+    <div style="display:flex; gap:0.8rem; align-items:center;">
+      <div id="followersCounterBadge" class="followers-badge" title="Total Global Followers">
+        <span>⚔️</span> <span id="globalFollowerCount">...</span> Followers
+      </div>
+      <button class="updates-nav" id="profileNavButton" type="button" onclick="openModal('profileModal')" style="display:none;">Profile</button>
+      <button class="updates-nav" id="updatesButton" type="button">Updates <span id="unreadBadge" hidden></span></button>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <section id="hero">
+    <p class="hero-series">Novel Series</p>
+    <h1 class="hero-title calligraphy">Beast Breakdown</h1>
+    <p class="hero-by">By Vaibhav Singh</p>
+
+    <!-- Author card in hero -->
+    <div class="hero-author-card">
+      <div class="hero-author-name">Vaibhav Singh</div>
+      <div class="hero-author-role">Author &nbsp;·&nbsp; Novelist &nbsp;·&nbsp; Visionary</div>
+      <button class="btn btn-outline" style="margin-top:0.4rem; font-size:0.68rem; padding:0.5rem 1.4rem;" onclick="openModal('authorDetailsModal')">
+        Author's Details
+      </button>
+    </div>
+
+    <p class="hero-tagline">
+      Welcome to a fictional world of medieval age where Beast is not something to catch but something to acquire. Kingdoms are at war, the magical power of Beasts are controlled, and its time to explore!
+    </p>
+
+    <div class="btn-group">
+      <a class="btn btn-primary" href="#book">Explore the Book</a>
+    </div>
+
+    <div class="scroll-hint">Scroll</div>
+  </section>
+
+  <!-- BOOK SECTION -->
+  <section id="book">
+    <div class="book-inner">
+
+      <div class="book-cover-wrap fade-in">
+        <div class="book-cover-frame">
+          <span class="cover-series-badge">Novel Series</span>
+          <img src="book-cover.jpg" alt="Beast Breakdown book cover by Vaibhav Singh" width="986" height="1536" loading="lazy"
+               style="width:100%; height:100%; object-fit:contain; position:absolute; inset:0; z-index:5;"
+               onerror="this.style.display='none';" />
+          <div id="bookFallback" style="display:none; flex-direction:column; align-items:center; justify-content:center; position:absolute; inset:0; z-index:1;">
+            <div class="cover-beast-icon">🐉</div>
+            <div class="cover-title-text">Beast<br>Breakdown</div>
+            <div class="cover-author-small">Vaibhav Singh</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="book-details fade-in">
+        <p class="section-label">The Book</p>
+        <h2>Beast Breakdown</h2>
+        <div class="divider"></div>
+
+        <div class="book-meta">
+          <div class="meta-item">
+            <span class="meta-label">Author</span>
+            <span class="meta-value">Vaibhav Singh</span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-label">Genre</span>
+            <span class="meta-value">Dark Fantasy</span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-label">Type</span>
+            <span class="meta-value">Novel Series</span>
+          </div>
+        </div>
+
+        <p class="book-desc">
+          "The only time when humanity was in its golden period along with never ending wars was - The medieval time period."
+        </p>
+
+        <p style="color:rgba(245,245,245,0.62); font-size:0.93rem; margin-bottom:2rem;">
+          Beast Breakdown plunges readers into a world where humanity's darkest impulses take monstrous form.
+          Follow an unlikely hero on a journey through shadow and fire, where the line between monster
+          and man dissolves with every turning page.
+        </p>
+
+        <div class="stars">
+          <span class="star">★</span><span class="star">★</span><span class="star">★</span>
+          <span class="star">★</span><span class="star">★</span>
+          <span style="font-size:0.72rem; color:var(--muted); margin-left:0.5rem; align-self:center;">Readers' Choice</span>
+        </div>
+
+        <div class="btn-group" style="justify-content:flex-start;">
+          <a class="btn btn-primary" href="#">Get Your Copy</a>
+          <a class="btn btn-outline" href="#">Read a Preview</a>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- AUTHOR SECTION -->
+  <section id="author">
+    <div class="author-inner">
+
+      <div class="author-content fade-in">
+        <p class="section-label">The Author</p>
+        <h2>Vaibhav Singh</h2>
+        <p class="author-title-tag">Novelist &nbsp;·&nbsp; Storyteller &nbsp;·&nbsp; Visionary</p>
+        <div class="divider"></div>
+
+        <p class="author-bio">
+          Vaibhav Singh is a novelist known for weaving dark, immersive narratives that explore the boundaries of
+          human nature. With a gift for creating vivid worlds and complex characters, his work challenges readers
+          to confront the primal forces that shape us.
+        </p>
+
+        <p class="author-bio">
+          Beast Breakdown marks the beginning of an ambitious novel series that promises to redefine the
+          dark fantasy genre — one visceral chapter at a time.
+        </p>
+
+        <blockquote class="author-quote">
+          "Never hate the unwanted changes around you. They are just small noises. Make your own changes to mute the noises."
+        </blockquote>
+
+        <div class="btn-group" style="justify-content:flex-start; gap:1rem;">
+          <button class="btn btn-outline" onclick="openModal('authorDetailsModal')">Author's Details</button>
+        </div>
+      </div>
+
+      <div class="author-photo-wrap fade-in">
+        <div>
+          <div class="author-photo-frame">
+            <div class="photo-corner tl"></div>
+            <div class="photo-corner tr"></div>
+            <div class="photo-corner bl"></div>
+            <div class="photo-corner br"></div>
+            <img src="Author.jpg" alt="Vaibhav Singh" style="width:100%; height:100%; object-fit:cover; position:absolute; inset:0; z-index:2;" />
+            <div class="author-photo-label" style="z-index:3;">
+              Vaibhav Singh
+              <span>Author</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-logo">Beast Breakdown</div>
+    <p>© 2026 Vaibhav Singh. All rights reserved.</p>
+    <p style="margin-top:0.4rem; font-size:0.7rem;">A Novel Series</p>
+  </footer>
+
+  <!-- MODALS -->
+  <div class="modal-overlay" id="authorDetailsModal" onclick="overlayClose(event, 'authorDetailsModal')">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="authorDetailsTitle">
+      <button class="modal-close" aria-label="Close" onclick="closeModal('authorDetailsModal')">✕</button>
+      <p class="section-label">Stay close to the story</p>
+      <h2 class="modal-title" id="authorDetailsTitle">Vaibhav Singh</h2>
+      <div class="modal-gold-divider"></div>
+      <p class="community-email">Email: <a href="mailto:4.vaibhav.14@gmail.com">4.vaibhav.14@gmail.com</a></p>
+      <p class="community-copy">Follow my books for new chapters, book news, and notes from the author. New updates appear here on the website when you return.</p>
+      <button class="btn btn-primary follow-action" type="button">Follow / Sign In</button>
+      <p class="community-copy follow-state" role="status"></p>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="updatesModal" onclick="overlayClose(event, 'updatesModal')">
+    <div class="modal community-modal" role="dialog" aria-modal="true" aria-labelledby="updatesTitle">
+      <button class="modal-close" aria-label="Close" onclick="closeModal('updatesModal')">✕</button>
+      <p class="section-label">From the author's desk</p>
+      <h2 class="modal-title" id="updatesTitle">Updates</h2>
+      <p class="community-copy">Book news and the latest from Vaibhav Singh.</p>
+      <div id="updatesList" aria-live="polite">
+        <div class="update-entry" style="text-align:center; padding: 3rem 1rem;">
+          <h3 style="font-family:'Cinzel',serif; font-size:1.8rem; color:var(--gold-neon); margin-bottom:1rem; text-shadow: 0 0 10px rgba(255,224,102,0.6);">Coming Soon</h3>
+          <p style="color:var(--muted); font-size:0.95rem; font-style:italic;">No updates have been posted yet. Create your profile, follow the website, and you will be notified on your registered email id as soon as new updates arrive!</p>
+        </div>
+      </div>
+      <button class="btn btn-outline follow-action" type="button">Follow / Sign In</button>
+      <div class="community-tools">
+        <button type="button" id="authModalTriggerBtn" onclick="openModal('accountModal')">Reader sign in / up</button>
+      </div>
+      <p id="communityStatus" role="status"></p>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="accountModal" onclick="overlayClose(event, 'accountModal')">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="accountTitle">
+      <button class="modal-close" aria-label="Close" onclick="closeModal('accountModal')">✕</button>
+      <h2 class="modal-title" id="accountTitle">Reader account</h2>
+      <p class="community-copy">Sign in or create your profile to follow the website and receive update notifications on your registered email id.</p>
+      <form id="accountForm" class="community-form">
+        <label for="readerEmail">Email</label>
+        <input id="readerEmail" type="email" autocomplete="email" required maxlength="254">
+        <label for="readerPassword">Password</label>
+        <input id="readerPassword" type="password" autocomplete="current-password" minlength="6" required>
+        <div style="display:flex; gap:1rem; margin-top:0.5rem;">
+          <button class="btn btn-primary" type="submit" id="signInSubmitBtn">Sign in</button>
+          <button class="btn btn-outline" id="signupButton" type="button">Create account</button>
+        </div>
+      </form>
+      <form id="usernameForm" class="community-form" hidden>
+        <h3 style="font-family:'Cinzel',serif; color:var(--gold-lt); margin-bottom:0.4rem;">Choose your Username</h3>
+        <p class="community-copy" style="margin:0 0 1rem 0;">Set up your reader profile to complete your registration.</p>
+        <label for="readerUsername">Username</label>
+        <input id="readerUsername" type="text" autocomplete="username" required maxlength="50" placeholder="e.g. ShadowKnight">
+        <button class="btn btn-primary" type="submit">Complete Profile & Follow</button>
+      </form>
+      <p id="accountStatus" role="status"></p>
+    </div>
+  </div>
+
+  <div class="modal-overlay library-overlay" id="libraryModal" onclick="overlayClose(event, 'libraryModal')">
+    <aside class="modal library-drawer" id="libraryDrawer" role="dialog" aria-modal="true" aria-labelledby="libraryTitle">
+      <button class="modal-close" aria-label="Close library" onclick="closeModal('libraryModal')">✕</button>
+      <p class="section-label">Vaibhav Singh’s Stories</p>
+      <h2 class="modal-title" id="libraryTitle">The Library</h2>
+      <div class="divider" style="margin: 0.8rem 0 1.5rem;"></div>
+      <div id="libraryContentArea" aria-live="polite">
+        <!-- Filled dynamically based on follower auth status -->
+      </div>
+    </aside>
+  </div>
+
+  <div class="modal-overlay" id="chapterModal" onclick="overlayClose(event, 'chapterModal')">
+    <article class="modal chapter-reader" role="dialog" aria-modal="true" aria-labelledby="chapterHeading">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem; border-bottom:1px solid rgba(201,168,76,0.2); padding-bottom:1rem;">
+        <button class="btn btn-outline" id="backHomeBtn" onclick="closeModal('chapterModal'); window.location.href='#hero';" style="font-size:0.68rem; padding:0.4rem 1rem;">🏠 Home</button>
+        <button class="modal-close" aria-label="Close chapter" onclick="closeModal('chapterModal')">✕</button>
+      </div>
+      <h2 id="chapterBook" style="font-family:'Cinzel Decorative', serif; font-size:1.4rem; color:var(--gold); text-align:center; margin-bottom:0.3rem;">Book Name</h2>
+      <h3 class="cinzel-neon" id="chapterHeading" style="font-size: clamp(1.8rem, 4vw, 2.8rem); text-align:center; margin: 0.5rem 0 1rem; line-height: 1.2;">Chapter Name</h3>
+      <div class="divider" style="margin: 1rem auto 2rem; width:100px;"></div>
+      <div id="chapterText" class="chapter-text" style="font-family:'Raleway', sans-serif; font-weight:300; font-size:1.08rem; line-height:2.1; color:rgba(245,245,245,0.9); padding:0 1rem; max-height:60vh; overflow-y:auto;"></div>
+      <div class="community-tools" style="justify-content:space-between; margin-top:2.5rem; border-top:1px solid rgba(201,168,76,0.2); padding-top:1.5rem;">
+        <button id="previousChapter" class="text-button" style="color:var(--gold);">← Previous Chapter</button>
+        <button id="nextChapter" class="text-button" style="color:var(--gold);">Next Chapter →</button>
+      </div>
+    </article>
+  </div>
+
+  <div class="modal-overlay" id="profileModal" onclick="overlayClose(event, 'profileModal')">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="profileTitle">
+      <button class="modal-close" aria-label="Close" onclick="closeModal('profileModal')">✕</button>
+      <p class="section-label">Reader Profile</p>
+      <h2 class="modal-title" id="profileTitle">Your Account</h2>
+      <div class="modal-gold-divider"></div>
+      <div id="profileDetails" style="margin: 1.5rem 0;">
+        <!-- Filled by JS -->
+      </div>
+      <button class="btn btn-outline" onclick="signOutSupabase()" style="width:100%; margin-top:1rem;">Sign Out</button>
+    </div>
+  </div>
+
+  <script>
+    // Supabase Initialization
+    const SUPABASE_URL = 'https://yxbphievkdscjixgmgyu.supabase.co';
+    const SUPABASE_KEY = 'sb_publishable_LzsziIh2Mqm5FaCWeVS2NA_INBRjR-c';
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    // Novels and Chapters Data
+    const novelLibrary = [
+      {
+        id: 'rise-of-devils',
+        title: 'Beast Breakdown: Rise of Devils',
+        subtitle: 'Part I · The Medieval Saga',
+        cover: 'book-cover.jpg',
+        description: 'Kingdoms stand on the precipice of war as ancient beasts awaken. The medieval era enters its darkest, most volatile age.',
+        chapters: [
+          {
+            id: 1,
+            title: 'Chapter 1: Whispers in the Bloodline',
+            partName: 'Beast Breakdown: Rise of Devils — Part I',
+            text: `The cold wind sweeping down the stone ramparts of Oakhaven carried the scent of iron and approaching storm. Lord Alden stood motionless, gazing out across the mist-shrouded valleys where kingdoms had risen and fallen like autumn leaves.
+
+In this medieval realm, beasts were not mere creatures of the wild. They were living conduits of primal power—bound to bloodlines, forged in ancient fires, and coveted by every crown from here to the Obsidian Reach. To acquire a beast was to command armies; to lose control was to become dust.
+
+"My lord," a raspy voice murmured from the shadows of the arched doorway. Sir Garrick stepped forward, his silver-plated armor gleaming faintly beneath torchlight. "The scouts from the border report movement in the Whispering Woods. The crimson banners of House Vane are advancing."
+
+Alden did not turn. His fingers grazed the hilt of his ancestral blade, feeling the faint, unnatural warmth humming through the steel—a reminder of the beast slumbering within his own veins. "Let them come," he whispered, his eyes narrowing against the gathering dark. "The rise of devils has begun, and we shall not yield the night."`
+          },
+          {
+            id: 2,
+            title: 'Chapter 2: Shadows of the Obsidian Reach',
+            partName: 'Beast Breakdown: Rise of Devils — Part I',
+            text: `Beneath the canopy of the Obsidian Woods, sunlight was a forgotten myth. Here, the trees grew twisted and gray, their roots drinking from subterranean springs rich with arcane ore.
+
+Elidor moved silently through the underbrush, every sense honed to a razor edge. Behind him, the low, resonant rumble of a frost-scaled hound echoed through the gloom. It was a beast of formidable magnitude, bound to his will through a pact sealed in blood and trial.
+
+Rumors in the taverns spoke of a rebellion brewing in the southern baronies—a faction seeking to sever the sacred ties between men and beasts. If they succeeded, the delicate balance holding the kingdoms together would shatter instantly.
+
+"Easy, shadow-kin," Elidor murmured, calming the beast as a patrol of armored knights bearing the insignia of the Royal Vanguard marched past fifty paces away. The time for hiding was drawing to a close. The storm was breaking over the realm, and he intended to be the lightning.`
+          },
+          {
+            id: 3,
+            title: 'Chapter 3: The Hearth and the Iron Throne',
+            partName: 'Beast Breakdown: Rise of Devils — Part I',
+            text: `Within the grand banquet hall of the High Keep, flickering chandeliers cast long, dancing shadows across tapestry-clad walls depicting legendary hunts of antiquity.
+
+King Raymond sat upon the Iron Throne, his expression carved from stone. Before him knelt emissaries from three rival houses, each demanding concessions, troops, and dominion over the beast-taming guilds.
+
+"You speak of war as though it were a game of chess," Raymond’s voice echoed coldly through the cavernous hall, silencing the murmurs of discontent. "You forget what slumbers beneath these very stones. When the awakening reaches its peak, no crown will protect you from the fire."
+
+Outside, the first howl split the midnight sky—not of wolves, but of something far older, far hungrier. The age of peace was dead. The age of beasts had arrived.`
+          }
+        ]
+      }
+    ];
+
+    let currentUser = null;
+
+    // Fetch and update global follower count
+    async function fetchFollowerCount() {
+      try {
+        const { data, error } = await supabaseClient.rpc('get_follower_count');
+        if (error) {
+          console.error('Error fetching follower count:', error);
+          return;
+        }
+        const countElem = document.getElementById('globalFollowerCount');
+        if (countElem) {
+          countElem.textContent = (data !== null && data !== undefined) ? data : 0;
+        }
+      } catch (err) {
+        console.error('Failed to fetch follower count:', err);
+      }
+    }
+
+    // Ensure user has a follower record in the database (automatic following)
+    async function ensureFollowerRecord(userId) {
+      try {
+        // Check if follower record already exists
+        const { data, error } = await supabaseClient
+          .from('Followers')
+          .select('user_id')
+          .eq('user_id', userId)
+          .maybeSingle();
+
+        if (error) {
+          console.error('Error checking follower record:', error);
+          return;
+        }
+
+        // If not following, insert follower record
+        if (!data) {
+          const { error: insertError } = await supabaseClient
+            .from('Followers')
+            .insert([{ user_id: userId }]);
+
+          if (insertError) {
+            console.error('Error creating follower record:', insertError);
+          } else {
+            console.log('Successfully added follower record for user:', userId);
+            fetchFollowerCount();
+          }
+        }
+      } catch (err) {
+        console.error('Exception in ensureFollowerRecord:', err);
+      }
+    }
+
+    // Render library based on authentication state
+    async function renderLibrary(isLoggedIn) {
+      const container = document.getElementById('libraryContentArea');
+      if (!container) return;
+
+      if (!isLoggedIn) {
+        container.innerHTML = `
+          <div style="text-align:center; padding: 3rem 1rem;">
+            <p class="section-label" style="font-size:0.75rem; letter-spacing:4px; color:var(--gold); margin-bottom:1rem;">✦ Locked Realm ✦</p>
+            <h3 style="font-family:'Cinzel',serif; font-size:1.5rem; color:var(--gold-lt); margin-bottom:1rem;">Library Exclusive to Followers</h3>
+            <p class="community-copy" style="margin-bottom:2rem;">The Library chapters and sacred texts are accessible only to authenticated followers of Beast Breakdown. Please sign in or create an account to unlock full access.</p>
+            <button class="btn btn-primary" onclick="closeModal('libraryModal'); openModal('accountModal');">Sign In / Follow to Unlock</button>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = `
+        <p class="community-copy" style="margin-top:0; margin-bottom:1.5rem;">Select a book to explore its realms and chapters.</p>
+        <div id="libraryList">
+          ${novelLibrary.map(book => `
+            <div class="library-book" style="margin-bottom:1.8rem; border-top:1px solid rgba(201,168,76,0.3); padding-top:1.5rem;">
+              <div class="library-book-header" style="display:flex; gap:1.2rem; align-items:center; margin-bottom:1rem; cursor:pointer;" onclick="toggleBookChapters('${book.id}')">
+                <img src="${book.cover}" alt="${book.title}" style="width:70px; height:100px; object-fit:cover; border:1px solid var(--gold); border-radius:2px; box-shadow:0 4px 15px rgba(0,0,0,0.6);">
+                <div>
+                  <p class="section-label" style="font-size:0.58rem; margin-bottom:0.2rem;">${book.subtitle}</p>
+                  <h3 style="font-family:'Cinzel', serif; color:var(--gold-lt); font-size:1.1rem; line-height:1.4;">${book.title}</h3>
+                  <p style="color:var(--muted); font-size:0.75rem; margin-top:0.3rem;">${book.chapters.length} Chapters Available &nbsp;▾</p>
+                </div>
+              </div>
+              <div id="chapters-${book.id}" class="book-chapters-list" style="padding-left:1rem; display:block;">
+                ${book.chapters.map(ch => `
+                  <button class="library-chapter" onclick="openChapter('${book.id}', ${ch.id})" style="display:block; width:100%; padding:0.7rem 0.5rem; text-align:left; border:0; border-bottom:1px solid rgba(201,168,76,0.1); color:var(--gold-lt); background:transparent; cursor:pointer; font-family:'Raleway',sans-serif; font-size:0.88rem; transition:all 0.3s;">
+                    ✦ ${ch.title}
+                  </button>
+                `).join('')}
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      `;
+    }
+
+    function toggleBookChapters(bookId) {
+      const list = document.getElementById(`chapters-${bookId}`);
+      if (list) {
+        list.style.display = list.style.display === 'none' ? 'block' : 'none';
+      }
+    }
+
+    function openChapter(bookId, chapterId) {
+      const book = novelLibrary.find(b => b.id === bookId);
+      if (!book) return;
+      const chapter = book.chapters.find(c => c.id === chapterId);
+      if (!chapter) return;
+
+      document.getElementById('chapterBook').textContent = book.title;
+      document.getElementById('chapterHeading').textContent = chapter.title;
+      document.getElementById('chapterText').textContent = chapter.text;
+
+      const prevBtn = document.getElementById('previousChapter');
+      const nextBtn = document.getElementById('nextChapter');
+
+      const chIndex = book.chapters.findIndex(c => c.id === chapterId);
+      prevBtn.style.display = chIndex > 0 ? 'inline-block' : 'none';
+      nextBtn.style.display = chIndex < book.chapters.length - 1 ? 'inline-block' : 'none';
+
+      prevBtn.onclick = () => {
+        if (chIndex > 0) openChapter(bookId, book.chapters[chIndex - 1].id);
+      };
+      nextBtn.onclick = () => {
+        if (chIndex < book.chapters.length - 1) openChapter(bookId, book.chapters[chIndex + 1].id);
+      };
+
+      closeModal('libraryModal');
+      openModal('chapterModal');
+    }
+
+    function openLibraryModal() {
+      renderLibrary(currentUser !== null);
+      openModal('libraryModal');
+    }
+
+    async function updateProfileUI(user) {
+      const profileNavBtn = document.getElementById('profileNavButton');
+      const profileDetails = document.getElementById('profileDetails');
+
+      if (user) {
+        if (profileNavBtn) profileNavBtn.style.display = 'inline-block';
+        if (profileDetails) {
+          const userMeta = user.user_metadata || {};
+          const username = userMeta.username || user.email.split('@')[0];
+          profileDetails.innerHTML = `
+            <div class="contact-row">
+              <div class="contact-icon">👤</div>
+              <div class="contact-info">
+                <div class="contact-label">Username</div>
+                <div class="contact-value">${username}</div>
+              </div>
+            </div>
+            <div class="contact-row">
+              <div class="contact-icon">✉️</div>
+              <div class="contact-info">
+                <div class="contact-label">Registered Email</div>
+                <div class="contact-value">${user.email}</div>
+              </div>
+            </div>
+            <div class="contact-row">
+              <div class="contact-icon">✨</div>
+              <div class="contact-info">
+                <div class="contact-label">Following Status</div>
+                <div class="contact-value">Following Beast Breakdown (Notifications Enabled)</div>
+              </div>
+            </div>
+          `;
+        }
+      } else {
+        if (profileNavBtn) profileNavBtn.style.display = 'none';
+      }
+    }
+
+    async function signOutSupabase() {
+      await supabaseClient.auth.signOut();
+      currentUser = null;
+      updateProfileUI(null);
+      closeModal('profileModal');
+      fetchFollowerCount();
+      renderLibrary(false);
+    }
+
+    // Auth Event Handlers
+    document.getElementById('updatesButton').addEventListener('click', () => {
+      openModal('updatesModal');
+    });
+
+    document.querySelectorAll('.follow-action').forEach(btn => {
+      btn.addEventListener('click', () => {
+        closeModal('updatesModal');
+        closeModal('authorDetailsModal');
+        openModal('accountModal');
+      });
+    });
+
+    // Sign Up Button -> Show Username step
+    document.getElementById('signupButton').addEventListener('click', async () => {
+      const email = document.getElementById('readerEmail').value;
+      const password = document.getElementById('readerPassword').value;
+      const statusEl = document.getElementById('accountStatus');
+
+      if (!email || !email.includes('@') || !password || password.length < 6) {
+        statusEl.textContent = 'Please enter a valid email and a password of at least 6 characters.';
+        return;
+      }
+
+      document.getElementById('accountForm').hidden = true;
+      document.getElementById('usernameForm').hidden = false;
+      statusEl.textContent = '';
+      document.getElementById('readerUsername').focus();
+    });
+
+    // Complete Profile & Sign Up
+    document.getElementById('usernameForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const username = document.getElementById('readerUsername').value;
+      const email = document.getElementById('readerEmail').value;
+      const password = document.getElementById('readerPassword').value;
+      const statusEl = document.getElementById('accountStatus');
+
+      if (!username) return;
+      statusEl.textContent = 'Creating your account and securing your follower status...';
+
+      try {
+        const { data, error } = await supabaseClient.auth.signUp({
+          email: email,
+          password: password,
+          options: {
+            data: { username: username }
+          }
+        });
+
+        if (error) {
+          statusEl.textContent = 'Error: ' + error.message;
+          document.getElementById('usernameForm').hidden = true;
+          document.getElementById('accountForm').hidden = false;
+          return;
+        }
+
+        if (data.user) {
+          currentUser = data.user;
+          await ensureFollowerRecord(currentUser.id);
+          updateProfileUI(currentUser);
+          statusEl.textContent = `Welcome ${username}! Account created and you are successfully following Beast Breakdown.`;
+          setTimeout(() => {
+            closeModal('accountModal');
+            document.getElementById('usernameForm').hidden = true;
+            document.getElementById('accountForm').hidden = false;
+            document.getElementById('accountForm').reset();
+            document.getElementById('usernameForm').reset();
+            statusEl.textContent = '';
+          }, 2500);
+        }
+      } catch (err) {
+        statusEl.textContent = 'Unexpected error: ' + err.message;
+      }
+    });
+
+    // Sign In Form Submit
+    document.getElementById('accountForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = document.getElementById('readerEmail').value;
+      const password = document.getElementById('readerPassword').value;
+      const statusEl = document.getElementById('accountStatus');
+
+      statusEl.textContent = 'Signing in...';
+
+      try {
+        const { data, error } = await supabaseClient.auth.signInWithPassword({
+          email: email,
+          password: password
+        });
+
+        if (error) {
+          statusEl.textContent = 'Sign-in error: ' + error.message;
+          return;
+        }
+
+        if (data.user) {
+          currentUser = data.user;
+          await ensureFollowerRecord(currentUser.id);
+          updateProfileUI(currentUser);
+          statusEl.textContent = 'Signed in successfully! Automatically verified following status.';
+          setTimeout(() => {
+            closeModal('accountModal');
+            document.getElementById('accountForm').reset();
+            statusEl.textContent = '';
+          }, 1500);
+        }
+      } catch (err) {
+        statusEl.textContent = 'Unexpected error: ' + err.message;
+      }
+    });
+
+    // Initialize session and follower count on load
+    document.addEventListener('DOMContentLoaded', async () => {
+      fetchFollowerCount();
+
+      // Check existing session
+      const { data: { session } } = await supabaseClient.auth.getSession();
+      if (session && session.user) {
+        currentUser = session.user;
+        await ensureFollowerRecord(currentUser.id);
+        updateProfileUI(currentUser);
+      }
+
+      // Listen for auth state changes
+      supabaseClient.auth.onAuthStateChange(async (event, session) => {
+        if (session && session.user) {
+          currentUser = session.user;
+          await ensureFollowerRecord(currentUser.id);
+          updateProfileUI(currentUser);
+        } else {
+          currentUser = null;
+          updateProfileUI(null);
+        }
+        fetchFollowerCount();
+      });
+    });
+
+    // Modal controls
+    const modalTriggers = new Map();
+    function openModal(id) {
+      modalTriggers.set(id, document.activeElement);
+      document.getElementById(id).classList.add('open');
+      if (id === 'libraryModal') document.getElementById('libraryButton').setAttribute('aria-expanded', 'true');
+      document.getElementById(id).querySelector('button, input, select, textarea')?.focus();
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeModal(id) {
+      document.getElementById(id).classList.remove('open');
+      if (id === 'libraryModal') document.getElementById('libraryButton').setAttribute('aria-expanded', 'false');
+      document.body.style.overflow = '';
+      modalTriggers.get(id)?.focus();
+    }
+
+    function overlayClose(e, id) {
+      if (e.target === document.getElementById(id)) closeModal(id);
+    }
+
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') {
+        document.querySelectorAll('.modal-overlay.open').forEach(m => {
+          closeModal(m.id);
+        });
+        document.body.style.overflow = '';
+      }
+    });
+
+    // Scroll fade-in
+    const observer = new IntersectionObserver(entries => {
+      entries.forEach(e => {
+        if (e.isIntersecting) e.target.classList.add('visible');
+      });
+    }, { threshold: 0.12 });
+
+    document.querySelectorAll('.fade-in').forEach((el, i) => {
+      el.style.transitionDelay = `${i * 0.1}s`;
+      observer.observe(el);
+    });
+  </script>
+
+</body>
+</html>
