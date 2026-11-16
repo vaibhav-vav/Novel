@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Reader Profile — Beast Breakdown</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Cinzel:wght@400;700;900&family=Raleway:wght@300;400;600&display=swap" rel="stylesheet" />
+  <!-- Supabase JS CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --gold:      #c9a84c;
+      --gold-lt:   #f0d080;
+      --gold-dim:  #7a6020;
+      --gold-neon: #ffe066;
+      --black:     #060606;
+      --dark:      #0e0e0e;
+      --mid:       #181818;
+      --white:     #f5f5f5;
+      --muted:     #777777;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--black);
+      color: var(--white);
+      font-family: 'Raleway', sans-serif;
+      font-weight: 300;
+      line-height: 1.7;
+      overflow-x: hidden;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* GLOBAL GOLDEN MIST LAYER */
+    body::before {
+      content: '';
+      pointer-events: none;
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      background:
+        radial-gradient(ellipse 90% 50% at 50% 0%,   rgba(201,168,76,0.07) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 40% at 10% 30%,  rgba(201,168,76,0.05) 0%, transparent 55%),
+        radial-gradient(ellipse 50% 35% at 90% 60%,  rgba(201,168,76,0.05) 0%, transparent 55%),
+        radial-gradient(ellipse 80% 30% at 50% 100%, rgba(201,168,76,0.06) 0%, transparent 60%);
+    }
+
+    nav, main, footer { position: relative; z-index: 1; }
+
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 200;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1.1rem 5%;
+      background: rgba(6,6,6,0.88);
+      backdrop-filter: blur(14px);
+      border-bottom: 1px solid rgba(201,168,76,0.18);
+      box-shadow: 0 2px 40px rgba(201,168,76,0.06);
+    }
+
+    .nav-logo {
+      font-family: 'Cinzel Decorative', serif;
+      font-size: 1rem;
+      color: var(--gold);
+      letter-spacing: 1px;
+      text-decoration: none;
+      text-shadow: 0 0 12px rgba(201,168,76,0.5);
+    }
+
+    .updates-nav {
+      background: transparent;
+      color: var(--gold-lt);
+      border: 1px solid var(--gold);
+      padding: .65rem .85rem;
+      font: inherit;
+      cursor: pointer;
+      letter-spacing: 1px;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      text-decoration: none;
+      border-radius: 2px;
+      transition: all 0.3s;
+    }
+    .updates-nav:hover {
+      background: rgba(201,168,76,0.1);
+      color: var(--gold-lt);
+      border-color: var(--gold-lt);
+    }
+
+    main {
+      flex: 1;
+      padding: 8rem 5% 5rem;
+      max-width: 900px;
+      width: 100%;
+      margin: 0 auto;
+    }
+
+    .section-label {
+      font-size: 0.68rem;
+      letter-spacing: 5px;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 0.8rem;
+    }
+
+    .divider {
+      width: 60px;
+      height: 2px;
+      background: linear-gradient(to right, var(--gold-lt), var(--gold), transparent);
+      margin: 1.4rem 0 2.8rem;
+    }
+
+    .cinzel-gold {
+      font-family: 'Cinzel Decorative', serif;
+      color: var(--gold-lt);
+    }
+
+    .profile-card {
+      background: var(--dark);
+      border: 1px solid rgba(201,168,76,0.3);
+      padding: 3rem;
+      border-radius: 4px;
+      box-shadow: 0 0 50px rgba(201,168,76,0.08);
+      margin-bottom: 2.5rem;
+    }
+
+    .contact-row {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 1rem 1.2rem;
+      border: 1px solid rgba(201,168,76,0.15);
+      border-radius: 3px;
+      margin-bottom: 1rem;
+      background: rgba(201,168,76,0.02);
+    }
+
+    .contact-icon {
+      font-size: 1.4rem;
+      flex-shrink: 0;
+    }
+
+    .contact-info { flex: 1; }
+
+    .contact-label {
+      font-size: 0.6rem;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 0.15rem;
+    }
+
+    .contact-value {
+      font-family: 'Cinzel', serif;
+      font-size: 0.88rem;
+      color: var(--gold-lt);
+    }
+
+    .btn {
+      display: inline-block;
+      padding: 0.82rem 2.2rem;
+      border-radius: 2px;
+      font-size: 0.75rem;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      text-decoration: none;
+      font-family: 'Raleway', sans-serif;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.35s;
+      border: none;
+    }
+
+    .btn-primary {
+      background: var(--gold);
+      color: var(--black);
+      border: 2px solid var(--gold);
+      box-shadow: 0 0 20px rgba(201,168,76,0.3);
+    }
+    .btn-primary:hover {
+      background: var(--gold-lt);
+      border-color: var(--gold-lt);
+      transform: translateY(-2px);
+    }
+
+    .btn-outline {
+      background: transparent;
+      color: var(--gold);
+      border: 2px solid rgba(201,168,76,0.45);
+    }
+    .btn-outline:hover {
+      border-color: var(--gold-lt);
+      color: var(--gold-lt);
+      background: rgba(201,168,76,0.07);
+    }
+
+    footer {
+      background: var(--dark);
+      border-top: 1px solid rgba(201,168,76,0.12);
+      text-align: center;
+      padding: 2.5rem 5%;
+      color: var(--muted);
+      font-size: 0.75rem;
+      letter-spacing: 1px;
+    }
+
+    .update-box {
+      background: var(--dark);
+      border: 1px solid rgba(201,168,76,0.25);
+      padding: 2rem;
+      border-radius: 4px;
+      margin-top: 2rem;
+    }
+
+    .update-item {
+      border-top: 1px solid rgba(201,168,76,0.2);
+      padding: 1.2rem 0;
+    }
+    .update-item:first-child { border-top: none; padding-top: 0; }
+
+    @media (max-width: 768px) {
+      .profile-card { padding: 1.5rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav>
+    <a class="updates-nav" href="index.html">← Back to Home</a>
+    <a class="nav-logo" href="index.html">Beast Breakdown</a>
+    <a class="updates-nav" href="index.html#library">Library</a>
+  </nav>
+
+  <main id="mainContainer">
+    <div style="text-align:center; padding: 4rem 0;">
+      <p class="section-label">Loading Profile...</p>
+      <h2 class="cinzel-gold" style="font-size:1.6rem;">Accessing Realm...</h2>
+    </div>
+  </main>
+
+  <footer>
+    <p>© 2026 Vaibhav Singh Raghuvanshi. All rights reserved.</p>
+    <p style="margin-top:0.4rem; font-size:0.7rem;">Beast Breakdown — Fictional Medieval Age Novel Series</p>
+  </footer>
+
+  <script>
+    const SUPABASE_URL = 'https://yxbphievkdscjixgmgyu.supabase.co';
+    const SUPABASE_KEY = 'sb_publishable_LzsziIh2Mqm5FaCWeVS2NA_INBRjR-c';
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    function isEmailVerified(user) {
+      return user && user.email_confirmed_at !== null && user.email_confirmed_at !== undefined;
+    }
+
+    async function loadProfilePage() {
+      const mainContainer = document.getElementById('mainContainer');
+      const { data: { session } } = await supabaseClient.auth.getSession();
+      const user = session ? session.user : null;
+
+      if (!user || !isEmailVerified(user)) {
+        mainContainer.innerHTML = `
+          <div class="profile-card" style="text-align:center; padding: 4rem 2rem;">
+            <p class="section-label">✦ Verification Required ✦</p>
+            <h2 class="cinzel-gold" style="font-size:1.8rem; margin-bottom:1rem;">Access Locked</h2>
+            <p style="color:rgba(245,245,245,0.75); margin-bottom:2rem; line-height:1.8;">You must sign in and verify your account to view your profile.</p>
+            <a href="index.html" class="btn btn-primary">Return to Homepage</a>
+          </div>
+        `;
+        return;
+      }
+
+      const userMeta = user.user_metadata || {};
+      const username = userMeta.username || user.email.split('@')[0];
+
+      // Fetch stored updates and books
+      let updates = [];
+      try {
+        const { data: upData } = await supabaseClient.from('updates').select('*').order('created_at', { ascending: false });
+        updates = upData || [];
+      } catch (e) {}
+
+      let books = [];
+      try {
+        const { data: bkData } = await supabaseClient.from('librarybooks').select('*').order('created_at', { ascending: true });
+        books = bkData || [];
+      } catch (e) {}
+
+      mainContainer.innerHTML = `
+        <div class="profile-card fade-in">
+          <p class="section-label">Reader Profile</p>
+          <h1 class="cinzel-gold" style="font-size: clamp(1.8rem, 3.5vw, 2.4rem); margin-bottom:1.5rem;">Your Account</h1>
+          <div class="divider"></div>
+
+          <div style="margin-bottom: 2rem;">
+            <div class="contact-row">
+              <div class="contact-icon">👤</div>
+              <div class="contact-info">
+                <div class="contact-label">Username</div>
+                <div class="contact-value">${username}</div>
+              </div>
+            </div>
+            <div class="contact-row">
+              <div class="contact-icon">✉️</div>
+              <div class="contact-info">
+                <div class="contact-label">Registered Email</div>
+                <div class="contact-value">${user.email} (Verified)</div>
+              </div>
+            </div>
+            <div class="contact-row">
+              <div class="contact-icon">✨</div>
+              <div class="contact-info">
+                <div class="contact-label">Following Status</div>
+                <div class="contact-value">Following Beast Breakdown</div>
+              </div>
+            </div>
+          </div>
+
+          <div style="display:flex; gap:1rem; flex-wrap:wrap; margin-bottom: 3rem;">
+            <button class="btn btn-outline" onclick="signOut()" style="flex:1;">Sign Out</button>
+            <button class="btn btn-outline" onclick="deleteAccount()" style="flex:1; border-color: #8b0000; color: #ff6b6b;">Delete Account</button>
+          </div>
+
+          <!-- Posted Books Section -->
+          <div style="margin-top: 3rem;">
+            <h2 class="cinzel-gold" style="font-size: 1.4rem; margin-bottom: 1rem;">Available Books & Chapters</h2>
+            <div class="divider" style="margin: 0.5rem 0 1.5rem;"></div>
+            <div style="display: grid; gap: 1rem;">
+              ${books.map(b => `
+                <div style="background:var(--mid); border:1px solid rgba(201,168,76,0.25); padding:1.2rem; border-radius:3px; display:flex; justify-content:space-between; align-items:center;">
+                  <div>
+                    <h3 style="font-family:'Cinzel',serif; color:var(--gold-lt); font-size:1.1rem; margin-bottom:0.3rem;">${b.title}</h3>
+                    <p style="color:var(--muted); font-size:0.85rem;">${b.subtitle || ''} (${b.chapters ? b.chapters.length : 0} Chapters)</p>
+                  </div>
+                  <a href="book.html?id=${b.id}" class="btn btn-outline" style="font-size:0.7rem; padding:0.5rem 1rem;">Explore Book →</a>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+
+          <!-- Posted Updates Section -->
+          <div style="margin-top: 3rem;">
+            <h2 class="cinzel-gold" style="font-size: 1.4rem; margin-bottom: 1rem;">Latest Updates from Vaibhav Singh</h2>
+            <div class="divider" style="margin: 0.5rem 0 1.5rem;"></div>
+            <div class="update-box">
+              ${updates.length > 0 ? updates.map(u => `
+                <div class="update-item">
+                  <h3 style="font-family:'Cinzel',serif; color:var(--gold-lt); font-size:1.1rem; margin-bottom:0.5rem;">✦ ${u.title}</h3>
+                  <p style="color:rgba(245,245,245,0.85); line-height:1.8; white-space:pre-wrap; overflow-wrap:anywhere;">${u.content}</p>
+                </div>
+              `).join('') : '<p style="color:var(--muted); font-style:italic;">No updates posted yet.</p>'}
+            </div>
+          </div>
+
+        </div>
+      `;
+    }
+
+    async function signOut() {
+      await supabaseClient.auth.signOut();
+      window.location.href = 'index.html';
+    }
+
+    async function deleteAccount() {
+      const confirmed1 = confirm("WARNING: Account deletion is permanent and irreversible! It will permanently delete your account, Supabase auth credentials, and follower record. Do you wish to proceed?");
+      if (!confirmed1) return;
+
+      const { data: { session } } = await supabaseClient.auth.getSession();
+      const user = session ? session.user : null;
+
+      const confirmed2 = prompt("To confirm absolute deletion, please type your email address below:");
+      if (!confirmed2 || !user || confirmed2.trim().toLowerCase() !== user.email.toLowerCase()) {
+        alert("Email verification failed. Account deletion cancelled.");
+        return;
+      }
+
+      try {
+        const { error } = await supabaseClient.functions.invoke('delete-account');
+        if (error) throw error;
+        alert("Your account has been permanently deleted.");
+        await supabaseClient.auth.signOut();
+        window.location.href = 'index.html';
+      } catch (err) {
+        alert("Error deleting account: " + err.message);
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', loadProfilePage);
+  </script>
+</body>
+</html>
