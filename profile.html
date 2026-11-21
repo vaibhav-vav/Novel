@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Reader Profile — Beast Breakdown</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Cinzel:wght@400;700;900&family=Raleway:wght@300;400;600&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --gold:      #c9a84c;
+      --gold-lt:   #f0d080;
+      --gold-dim:  #7a6020;
+      --gold-neon: #ffe066;
+      --black:     #060606;
+      --dark:      #0e0e0e;
+      --mid:       #181818;
+      --white:     #f5f5f5;
+      --muted:     #777777;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--black);
+      color: var(--white);
+      font-family: 'Raleway', sans-serif;
+      font-weight: 300;
+      line-height: 1.7;
+      overflow-x: hidden;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    body::before {
+      content: '';
+      pointer-events: none;
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      background:
+        radial-gradient(ellipse 90% 50% at 50% 0%,   rgba(201,168,76,0.07) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 40% at 10% 30%,  rgba(201,168,76,0.05) 0%, transparent 55%),
+        radial-gradient(ellipse 50% 35% at 90% 60%,  rgba(201,168,76,0.05) 0%, transparent 55%),
+        radial-gradient(ellipse 80% 30% at 50% 100%, rgba(201,168,76,0.06) 0%, transparent 60%);
+    }
+
+    nav, main, footer { position: relative; z-index: 1; }
+
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 200;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1.1rem 5%;
+      background: rgba(6,6,6,0.88);
+      backdrop-filter: blur(14px);
+      border-bottom: 1px solid rgba(201,168,76,0.18);
+      box-shadow: 0 2px 40px rgba(201,168,76,0.06);
+    }
+
+    .nav-logo {
+      font-family: 'Cinzel Decorative', serif;
+      font-size: 1rem;
+      color: var(--gold);
+      letter-spacing: 1px;
+      text-decoration: none;
+      text-shadow: 0 0 12px rgba(201,168,76,0.5);
+    }
+
+    .updates-nav {
+      background: transparent;
+      color: var(--gold-lt);
+      border: 1px solid var(--gold);
+      padding: .65rem .85rem;
+      font: inherit;
+      cursor: pointer;
+      letter-spacing: 1px;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      text-decoration: none;
+      border-radius: 2px;
+      transition: all 0.3s;
+    }
+    .updates-nav:hover {
+      background: rgba(201,168,76,0.1);
+      color: var(--gold-lt);
+      border-color: var(--gold-lt);
+    }
+
+    main {
+      flex: 1;
+      padding: 8rem 5% 5rem;
+      max-width: 900px;
+      width: 100%;
+      margin: 0 auto;
+    }
+
+    .section-label {
+      font-size: 0.68rem;
+      letter-spacing: 5px;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 0.8rem;
+    }
+
+    .divider {
+      width: 60px;
+      height: 2px;
+      background: linear-gradient(to right, var(--gold-lt), var(--gold), transparent);
+      margin: 1.4rem 0 2.8rem;
+    }
+
+    .cinzel-gold {
+      font-family: 'Cinzel Decorative', serif;
+      color: var(--gold-lt);
+    }
+
+    .profile-card {
+      background: var(--dark);
+      border: 1px solid rgba(201,168,76,0.3);
+      padding: 3rem;
+      border-radius: 4px;
+      box-shadow: 0 0 50px rgba(201,168,76,0.08);
+      margin-bottom: 2.5rem;
+    }
+
+    .contact-row {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 1rem 1.2rem;
+      border: 1px solid rgba(201,168,76,0.15);
+      border-radius: 3px;
+      margin-bottom: 1rem;
+      background: rgba(201,168,76,0.02);
+    }
+
+    .contact-icon { font-size: 1.4rem; flex-shrink: 0; }
+    .contact-info { flex: 1; }
+
+    .contact-label {
+      font-size: 0.6rem;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 0.15rem;
+    }
+
+    .contact-value {
+      font-family: 'Cinzel', serif;
+      font-size: 0.88rem;
+      color: var(--gold-lt);
+    }
+
+    .btn {
+      display: inline-block;
+      padding: 0.82rem 2.2rem;
+      border-radius: 2px;
+      font-size: 0.75rem;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      text-decoration: none;
+      font-family: 'Raleway', sans-serif;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.35s;
+      border: none;
+    }
+
+    .btn-primary {
+      background: var(--gold);
+      color: var(--black);
+      border: 2px solid var(--gold);
+      box-shadow: 0 0 20px rgba(201,168,76,0.3);
+    }
+    .btn-primary:hover {
+      background: var(--gold-lt);
+      border-color: var(--gold-lt);
+      transform: translateY(-2px);
+    }
+
+    .btn-outline {
+      background: transparent;
+      color: var(--gold);
+      border: 2px solid rgba(201,168,76,0.45);
+    }
+    .btn-outline:hover {
+      border-color: var(--gold-lt);
+      color: var(--gold-lt);
+      background: rgba(201,168,76,0.07);
+    }
+
+    footer {
+      background: var(--dark);
+      border-top: 1px solid rgba(201,168,76,0.12);
+      text-align: center;
+      padding: 2.5rem 5%;
+      color: var(--muted);
+      font-size: 0.75rem;
+      letter-spacing: 1px;
+    }
+
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 500;
+      background: rgba(0,0,0,0.88);
+      backdrop-filter: blur(10px);
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+    }
+    .modal-overlay.open { display: flex; }
+
+    .modal {
+      background: var(--dark);
+      border: 1px solid rgba(201,168,76,0.3);
+      border-radius: 4px;
+      width: 100%;
+      max-width: 580px;
+      padding: 3rem;
+      position: relative;
+      box-shadow: 0 0 60px rgba(201,168,76,0.12);
+      max-height: calc(100dvh - 3rem);
+      overflow-y: auto;
+    }
+
+    .modal-close {
+      position: absolute;
+      top: 1.2rem; right: 1.4rem;
+      background: none; border: none;
+      color: var(--muted); font-size: 1.4rem; cursor: pointer;
+    }
+    .modal-close:hover { color: var(--gold-lt); }
+
+    .admin-form { display: grid; gap: .8rem; margin-top: 1rem; }
+    .admin-form input, .admin-form textarea, .admin-form select {
+      width: 100%;
+      background: var(--mid);
+      color: var(--gold-lt);
+      border: 1px solid var(--gold);
+      padding: .8rem;
+      font: inherit;
+      border-radius: 2px;
+    }
+    .admin-form label { color: var(--gold-lt); font-size: 0.85rem; }
+
+    .admin-menu {
+      display: grid;
+      gap: 1rem;
+      margin-top: 1.5rem;
+    }
+
+    .delete-item-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--mid);
+      padding: 0.8rem 1rem;
+      border: 1px solid rgba(201,168,76,0.2);
+      margin-bottom: 0.6rem;
+      border-radius: 2px;
+    }
+
+    [role="status"] { line-height: 1.6; margin-top: 1rem; color: var(--gold-lt); }
+
+    @media (max-width: 768px) {
+      .profile-card { padding: 1.5rem; }
+      .modal { padding: 2rem 1.5rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <a class="updates-nav" href="index.html">← Back to Home</a>
+    <a class="nav-logo" href="index.html">Beast Breakdown</a>
+    <a class="updates-nav" href="index.html#library">Library</a>
+  </nav>
+
+  <main id="mainContainer">
+    <div style="text-align:center; padding: 4rem 0;">
+      <p class="section-label">Loading Profile...</p>
+      <h2 class="cinzel-gold" style="font-size:1.6rem;">Accessing Realm...</h2>
+    </div>
+  </main>
+
+  <!-- Admin Dashboard Main Menu Modal -->
+  <div class="modal-overlay" id="adminMenuModal" onclick="overlayClose(event, 'adminMenuModal')">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="adminMenuTitle">
+      <button class="modal-close" aria-label="Close" onclick="closeModal('adminMenuModal')">✕</button>
+      <p class="section-label">Author Control Panel</p>
+      <h2 class="cinzel-gold" id="adminMenuTitle" style="font-size:1.8rem; margin-bottom:0.4rem;">Admin Dashboard</h2>
+      <div class="divider" style="margin: 0.8rem 0 1.5rem;"></div>
+      <p style="color:rgba(245,245,245,0.75); margin-bottom:1.5rem; font-size:0.95rem;">Select an action to publish updates, books, chapters, or manage/delete your published work.</p>
+
+      <div class="admin-menu">
+        <button class="btn btn-primary" onclick="openAdminForm('update')" style="width:100%; text-align:left; display:flex; justify-content:space-between; align-items:center;">
+          <span>📢 Publish Update</span> <span>→</span>
+        </button>
+        <button class="btn btn-primary" onclick="openAdminForm('chapter')" style="width:100%; text-align:left; display:flex; justify-content:space-between; align-items:center;">
+          <span>📖 Publish Chapter</span> <span>→</span>
+        </button>
+        <button class="btn btn-primary" onclick="openAdminForm('book')" style="width:100%; text-align:left; display:flex; justify-content:space-between; align-items:center;">
+          <span>📚 Publish Book</span> <span>→</span>
+        </button>
+        <button class="btn btn-outline" onclick="openAdminForm('manage')" style="width:100%; text-align:left; display:flex; justify-content:space-between; align-items:center; border-color:#8b0000; color:#ff6b6b;">
+          <span>🗑️ Delete Published Content</span> <span>→</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Admin Action Window Modal -->
+  <div class="modal-overlay" id="adminActionModal" onclick="overlayClose(event, 'adminActionModal')">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="adminActionTitle">
+      <button class="modal-close" aria-label="Close" onclick="closeModal('adminActionModal')">✕</button>
+      <p class="section-label" id="adminActionSubtitle">Author Action</p>
+      <h2 class="cinzel-gold" id="adminActionTitle" style="font-size:1.8rem; margin-bottom:0.4rem;">Action Window</h2>
+      <div class="divider" style="margin: 0.8rem 0 1.5rem;"></div>
+
+      <!-- Post Update Form -->
+      <form id="adminUpdateForm" class="admin-form" onsubmit="publishUpdate(event)" hidden>
+        <label for="adminUpdateTitle">Update Title</label>
+        <input id="adminUpdateTitle" type="text" required placeholder="e.g. Chapter 4 Preview & Author Notes">
+        <label for="adminUpdateContent">Update Content / Announcement</label>
+        <textarea id="adminUpdateContent" rows="5" required placeholder="Write your update or news here..."></textarea>
+        <button class="btn btn-primary" type="submit" style="margin-top:0.8rem;">Publish Update to Website</button>
+      </form>
+
+      <!-- Post Chapter Form -->
+      <form id="adminChapterForm" class="admin-form" onsubmit="publishChapter(event)" hidden>
+        <label for="adminChapterBookSelect">Select Book</label>
+        <select id="adminChapterBookSelect"></select>
+        <label for="adminChapterTitle">Chapter Title</label>
+        <input id="adminChapterTitle" type="text" required placeholder="e.g. Chapter 4: Blood and Iron">
+        <label for="adminChapterText">Chapter Text Content</label>
+        <textarea id="adminChapterText" rows="7" required placeholder="Paste or type the chapter story text here..."></textarea>
+        <button class="btn btn-primary" type="submit" style="margin-top:0.8rem;">Publish Chapter to Website</button>
+      </form>
+
+      <!-- Publish Book Form -->
+      <form id="adminBookForm" class="admin-form" onsubmit="publishBook(event)" hidden>
+        <label for="adminBookTitle">Book Title</label>
+        <input id="adminBookTitle" type="text" required placeholder="e.g. Beast Breakdown: Echoes of War">
+        <label for="adminBookSubtitle">Book Subtitle / Series Part</label>
+        <input id="adminBookSubtitle" type="text" required placeholder="e.g. Part II · The Southern Campaign">
+        <label for="adminBookDesc">Book Description</label>
+        <textarea id="adminBookDesc" rows="4" required placeholder="Short summary of the new book..."></textarea>
+        <button class="btn btn-primary" type="submit" style="margin-top:0.8rem;">Publish New Book to Library</button>
+      </form>
+
+      <!-- Manage / Delete Section -->
+      <div id="adminManageSection" hidden>
+        <p style="color:var(--muted); font-size:0.9rem; margin-bottom:1rem;">Select any item below to immediately delete it from Supabase and the live website.</p>
+        <div id="adminDeleteList" style="max-height:350px; overflow-y:auto;"></div>
+      </div>
+
+      <p id="adminStatus" role="status"></p>
+    </div>
+  </div>
+
+  <footer>
+    <p>© 2026 Vaibhav Singh Raghuvanshi. All rights reserved.</p>
+    <p style="margin-top:0.4rem; font-size:0.7rem;">Beast Breakdown — Fictional Medieval Age Novel Series</p>
+  </footer>
+
+  <script>
+    const SUPABASE_URL = 'https://yxbphievkdscjixgmgyu.supabase.co';
+    const SUPABASE_KEY = 'sb_publishable_LzsziIh2Mqm5FaCWeVS2NA_INBRjR-c';
+    const SUPABASE_CLIENT = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    const ADMIN_EMAIL = '4.vaibhav.14@gmail.com';
+
+    function isEmailVerified(user) {
+      return user && user.email_confirmed_at !== null && user.email_confirmed_at !== undefined;
+    }
+
+    function isAdmin(user) {
+      return user && user.email && user.email.toLowerCase() === ADMIN_EMAIL;
+    }
+
+    async function getStoredUpdates() {
+      try {
+        const { data, error } = await SUPABASE_CLIENT.from('updates').select('*').order('created_at', { ascending: false });
+        return (error || !data) ? [] : data;
+      } catch (e) { return []; }
+    }
+
+    async function getStoredLibrary() {
+      try {
+        const { data, error } = await SUPABASE_CLIENT.from('librarybooks').select('*').order('created_at', { ascending: true });
+        return (error || !data) ? [] : data;
+      } catch (e) { return []; }
+    }
+
+    async function loadProfilePage() {
+      const mainContainer = document.getElementById('mainContainer');
+      const { data: { session } } = await SUPABASE_CLIENT.auth.getSession();
+      const user = session ? session.user : null;
+
+      if (!user || !isEmailVerified(user)) {
+        mainContainer.innerHTML = `
+          <div class="profile-card" style="text-align:center; padding: 4rem 2rem;">
+            <p class="section-label">✦ Verification Required ✦</p>
+            <h2 class="cinzel-gold" style="font-size:1.8rem; margin-bottom:1rem;">Access Locked</h2>
+            <p style="color:rgba(245,245,245,0.75); margin-bottom:2rem; line-height:1.8;">You must sign in and verify your account to view your profile.</p>
+            <a href="index.html" class="btn btn-primary">Return to Homepage</a>
+          </div>
+        `;
+        return;
+      }
+
+      const userMeta = user.user_metadata || {};
+      const username = userMeta.username || user.email.split('@')[0];
+      const adminUser = isAdmin(user);
+
+      mainContainer.innerHTML = `
+        <div class="profile-card">
+          <p class="section-label">Reader Profile</p>
+          <h1 class="cinzel-gold" style="font-size: clamp(1.8rem, 3.5vw, 2.4rem); margin-bottom:1.5rem;">Your Account</h1>
+          <div class="divider"></div>
+
+          <div style="margin-bottom: 2rem;">
+            <div class="contact-row">
+              <div class="contact-icon">👤</div>
+              <div class="contact-info">
+                <div class="contact-label">Username</div>
+                <div class="contact-value">${username}</div>
+              </div>
+            </div>
+            <div class="contact-row">
+              <div class="contact-icon">✉️</div>
+              <div class="contact-info">
+                <div class="contact-label">Registered Email</div>
+                <div class="contact-value">${user.email} (Verified)</div>
+              </div>
+            </div>
+            <div class="contact-row">
+              <div class="contact-icon">✨</div>
+              <div class="contact-info">
+                <div class="contact-label">Following Status</div>
+                <div class="contact-value">Following Beast Breakdown</div>
+              </div>
+            </div>
+          </div>
+
+          <div style="display:flex; gap:1rem; flex-wrap:wrap; margin-bottom: 1.5rem;">
+            <button class="btn btn-outline" onclick="signOut()" style="flex:1;">Sign Out</button>
+            <button class="btn btn-outline" onclick="deleteAccount()" style="flex:1; border-color: #8b0000; color: #ff6b6b;">Delete Account</button>
+          </div>
+
+          ${adminUser ? `
+            <div style="margin-top: 2rem; border-top: 1px solid rgba(201,168,76,0.25); padding-top: 2rem;">
+              <button class="btn btn-primary" onclick="openAdminMenuModal()" style="width: 100%;">⚙️ Admin Dashboard</button>
+            </div>
+          ` : ''}
+
+        </div>
+      `;
+    }
+
+    function openAdminMenuModal() {
+      document.getElementById('adminMenuModal').classList.add('open');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function openAdminForm(type) {
+      closeModal('adminMenuModal');
+      document.getElementById('adminActionModal').classList.add('open');
+      document.body.style.overflow = 'hidden';
+
+      document.getElementById('adminUpdateForm').hidden = type !== 'update';
+      document.getElementById('adminChapterForm').hidden = type !== 'chapter';
+      document.getElementById('adminBookForm').hidden = type !== 'book';
+      document.getElementById('adminManageSection').hidden = type !== 'manage';
+
+      const titleEl = document.getElementById('adminActionTitle');
+      const subEl = document.getElementById('adminActionSubtitle');
+      const statusEl = document.getElementById('adminStatus');
+      statusEl.textContent = '';
+
+      if (type === 'update') {
+        subEl.textContent = 'Author Announcement';
+        titleEl.textContent = 'Publish New Update';
+      } else if (type === 'chapter') {
+        subEl.textContent = 'Library Chapter';
+        titleEl.textContent = 'Publish New Chapter';
+        populateAdminBookSelect();
+      } else if (type === 'book') {
+        subEl.textContent = 'Novel Series';
+        titleEl.textContent = 'Publish New Book';
+      } else if (type === 'manage') {
+        subEl.textContent = 'Content Management';
+        titleEl.textContent = 'Delete Published Content';
+        populateAdminDeleteList();
+      }
+    }
+
+    function closeModal(id) {
+      document.getElementById(id).classList.remove('open');
+      document.body.style.overflow = '';
+    }
+
+    function overlayClose(e, id) {
+      if (e.target === document.getElementById(id)) closeModal(id);
+    }
+
+    async function populateAdminBookSelect() {
+      const select = document.getElementById('adminChapterBookSelect');
+      if (!select) return;
+      const lib = await getStoredLibrary();
+      select.innerHTML = lib.map(b => `<option value="${b.id}">${b.title}</option>`).join('');
+    }
+
+    // ─── Publish Update ───
+    async function publishUpdate(event) {
+      event.preventDefault();
+      const title = document.getElementById('adminUpdateTitle').value;
+      const content = document.getElementById('adminUpdateContent').value;
+      const statusEl = document.getElementById('adminStatus');
+      if (!title || !content) return;
+
+      statusEl.textContent = 'Publishing update to Supabase...';
+      const { error } = await SUPABASE_CLIENT.from('updates').insert([{ title, content }]);
+      if (error) { statusEl.textContent = 'Error: ' + error.message; return; }
+
+      statusEl.textContent = 'Update published successfully for all users!';
+      document.getElementById('adminUpdateForm').reset();
+      setTimeout(() => { statusEl.textContent = ''; closeModal('adminActionModal'); }, 1500);
+    }
+
+    // ─── Publish Chapter ───
+    async function publishChapter(event) {
+      event.preventDefault();
+      const bookId = document.getElementById('adminChapterBookSelect').value;
+      const title = document.getElementById('adminChapterTitle').value;
+      const text = document.getElementById('adminChapterText').value;
+      const statusEl = document.getElementById('adminStatus');
+      if (!bookId || !title || !text) return;
+
+      statusEl.textContent = 'Publishing chapter to Supabase...';
+      const lib = await getStoredLibrary();
+      const book = lib.find(b => b.id === bookId);
+      if (!book) { statusEl.textContent = 'Book not found.'; return; }
+
+      const newChapterId = book.chapters.length > 0 ? Math.max(...book.chapters.map(c => c.id)) + 1 : 1;
+      book.chapters.push({ id: newChapterId, title: title, partName: book.title, text: text });
+
+      const { error } = await SUPABASE_CLIENT.from('librarybooks').upsert(book);
+      if (error) { statusEl.textContent = 'Error: ' + error.message; return; }
+
+      statusEl.textContent = 'Chapter published successfully for all readers!';
+      document.getElementById('adminChapterForm').reset();
+      setTimeout(() => { statusEl.textContent = ''; closeModal('adminActionModal'); }, 1500);
+    }
+
+    // ─── Publish Book ───
+    async function publishBook(event) {
+      event.preventDefault();
+      const title = document.getElementById('adminBookTitle').value;
+      const subtitle = document.getElementById('adminBookSubtitle').value;
+      const description = document.getElementById('adminBookDesc').value;
+      const statusEl = document.getElementById('adminStatus');
+      if (!title || !subtitle || !description) return;
+
+      statusEl.textContent = 'Publishing new book to Supabase...';
+      const newBookId = title.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+      const newBook = {
+        id: newBookId,
+        title: title,
+        subtitle: subtitle,
+        cover: 'book-cover.jpg',
+        description: description,
+        chapters: []
+      };
+
+      const { error } = await SUPABASE_CLIENT.from('librarybooks').insert([newBook]);
+      if (error) { statusEl.textContent = 'Error: ' + error.message; return; }
+
+      statusEl.textContent = 'New book published successfully in the library!';
+      document.getElementById('adminBookForm').reset();
+      setTimeout(() => { statusEl.textContent = ''; closeModal('adminActionModal'); }, 1500);
+    }
+
+    // ─── Manage / Delete ───
+    async function populateAdminDeleteList() {
+      const container = document.getElementById('adminDeleteList');
+      if (!container) return;
+      container.innerHTML = '<p style="color:var(--muted);">Loading published content...</p>';
+
+      const updates = await getStoredUpdates();
+      const lib = await getStoredLibrary();
+      let html = '';
+
+      if (updates.length > 0) {
+        html += `<h4 style="color:var(--gold); font-size:0.95rem; margin-top:0.5rem; margin-bottom:0.4rem;">Updates</h4>`;
+        updates.forEach(up => {
+          html += `<div class="delete-item-row">
+            <span style="font-size:0.85rem; color:var(--white);">${up.title}</span>
+            <button class="btn btn-outline" style="font-size:0.65rem; padding:0.3rem 0.6rem; border-color:#8b0000; color:#ff6b6b;" onclick="deleteUpdateItem('${up.id}')">Delete</button>
+          </div>`;
+        });
+      }
+
+      lib.forEach(book => {
+        html += `<h4 style="color:var(--gold); font-size:0.95rem; margin-top:1rem; margin-bottom:0.4rem;">Book: ${book.title}</h4>`;
+        if (book.chapters && book.chapters.length > 0) {
+          book.chapters.forEach(ch => {
+            html += `<div class="delete-item-row">
+              <span style="font-size:0.85rem; color:var(--white);">${ch.title}</span>
+              <button class="btn btn-outline" style="font-size:0.65rem; padding:0.3rem 0.6rem; border-color:#8b0000; color:#ff6b6b;" onclick="deleteChapterItem('${book.id}', ${ch.id})">Delete Chapter</button>
+            </div>`;
+          });
+        }
+        if (lib.length > 1) {
+          html += `<div class="delete-item-row" style="background:rgba(139,0,0,0.1);">
+            <span style="font-size:0.8rem; color:var(--gold-lt);">Remove entire book (${book.title})</span>
+            <button class="btn btn-outline" style="font-size:0.65rem; padding:0.3rem 0.6rem; border-color:#8b0000; color:#ff6b6b;" onclick="deleteBookItem('${book.id}')">Delete Book</button>
+          </div>`;
+        }
+      });
+
+      if (updates.length === 0 && lib.every(b => !b.chapters || b.chapters.length === 0)) {
+        html = '<p style="color:var(--muted); font-size:0.9rem;">No published content found.</p>';
+      }
+      container.innerHTML = html;
+    }
+
+    async function deleteUpdateItem(id) {
+      if (!confirm("Are you sure you want to delete this update?")) return;
+      const { error } = await SUPABASE_CLIENT.from('updates').delete().eq('id', id);
+      if (error) { alert('Error deleting update: ' + error.message); return; }
+      populateAdminDeleteList();
+    }
+
+    async function deleteChapterItem(bookId, chapterId) {
+      if (!confirm("Are you sure you want to delete this chapter?")) return;
+      const lib = await getStoredLibrary();
+      const book = lib.find(b => b.id === bookId);
+      if (!book) return;
+      book.chapters = book.chapters.filter(c => c.id !== chapterId);
+      const { error } = await SUPABASE_CLIENT.from('librarybooks').update({ chapters: book.chapters }).eq('id', bookId);
+      if (error) { alert('Error deleting chapter: ' + error.message); return; }
+      populateAdminDeleteList();
+    }
+
+    async function deleteBookItem(bookId) {
+      if (!confirm("Are you sure you want to delete this entire book and all its chapters?")) return;
+      const { error } = await SUPABASE_CLIENT.from('librarybooks').delete().eq('id', bookId);
+      if (error) { alert('Error deleting book: ' + error.message); return; }
+      populateAdminDeleteList();
+    }
+
+    // ─── Account Actions ───
+    async function signOut() {
+      await SUPABASE_CLIENT.auth.signOut();
+      window.location.href = 'index.html';
+    }
+
+    async function deleteAccount() {
+      const confirmed1 = confirm("WARNING: Account deletion is permanent and irreversible! It will permanently delete your account, Supabase auth credentials, and follower record. Do you wish to proceed?");
+      if (!confirmed1) return;
+
+      const { data: { session } } = await SUPABASE_CLIENT.auth.getSession();
+      const user = session ? session.user : null;
+
+      const confirmed2 = prompt("To confirm absolute deletion, please type your email address below:");
+      if (!confirmed2 || !user || confirmed2.trim().toLowerCase() !== user.email.toLowerCase()) {
+        alert("Email verification failed. Account deletion cancelled.");
+        return;
+      }
+
+      try {
+        const { error } = await SUPABASE_CLIENT.functions.invoke('delete-account');
+        if (error) throw error;
+        alert("Your account has been permanently deleted.");
+        await SUPABASE_CLIENT.auth.signOut();
+        window.location.href = 'index.html';
+      } catch (err) {
+        alert("Error deleting account: " + err.message);
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', loadProfilePage);
+  </script>
+</body>
+</html>
